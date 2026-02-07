@@ -29,7 +29,7 @@
             background-color: transparent; 
         }
 
-        /* [핵심] 지도 이미지 조각 */
+        /* [지도 이미지 조각] */
         .map-chunk { 
             width: 100%; 
             display: block; 
@@ -146,23 +146,14 @@
         }
         .floating-btn:active { transform: scale(0.95); }
 
-        /* 공지사항 버튼 (주황색, 아래에서 90px 위) */
-        #notice-btn {
-            bottom: 90px;
-            background: #e67e22; 
-        }
+        #notice-btn { bottom: 90px; background: #e67e22; }
+        #go-today-btn { bottom: 30px; background: #2c3e50; display: none; }
 
-        /* 현재 스케쥴 버튼 (남색, 맨 아래) */
-        #go-today-btn {
-            bottom: 30px;
-            background: #2c3e50;
-            display: none; /* 로딩 후 표시 */
-        }
-
-        /* 모달 공통 스타일 */
+        /* [모달 공통] */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(5px); }
         .modal-content { 
-            background: white; width: 100%; max-width: 450px; 
+            background: #f1f5f9; /* 모달 배경을 약간 회색으로 변경 (카드 구분을 위해) */
+            width: 100%; max-width: 450px; 
             border-radius: 20px; overflow: hidden; 
             animation: slideUp 0.3s ease-out; 
             max-height: 85vh; 
@@ -170,7 +161,7 @@
         }
         @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         
-        .modal-body { padding: 25px; overflow-y: auto; }
+        .modal-body { padding: 25px; overflow-y: auto; background: white; } /* 일반 모달은 흰색 유지 */
         
         .detail-box {
             background:#f8f9fa; padding:15px; border-radius:10px; margin-bottom:15px;
@@ -178,22 +169,28 @@
         }
         .close-btn { display: block; width: 100%; padding: 15px; margin-top: 10px; background: #2c3e50; color: white; border: none; font-size: 16px; border-radius: 10px; cursor: pointer; }
 
-        /* [공지사항 리스트 스타일] */
-        .notice-list-item {
+        /* [수정됨] 공지사항 리스트 스타일 (박스형 카드) */
+        .notice-list-container {
             padding: 15px;
-            border-bottom: 1px solid #eee;
+            background-color: #f1f5f9; /* 회색 배경 */
+        }
+
+        .notice-list-item {
+            background: white; /* 카드는 흰색 */
+            padding: 15px;
+            border-radius: 12px; /* 둥근 모서리 */
+            margin-bottom: 12px; /* 카드 간 간격 */
             cursor: pointer;
-            transition: background 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* 살짝 그림자 */
+            border: 1px solid #e2e8f0; /* 연한 테두리 */
+            transition: transform 0.1s;
         }
-        .notice-list-item:last-child { border-bottom: none; }
-        .notice-list-item:active { background: #f1f1f1; }
+        .notice-list-item:active { transform: scale(0.98); background: #fdfdfd; }
         
-        .notice-date { font-size: 12px; color: #999; margin-bottom: 4px; display:block; }
-        .notice-title { font-size: 16px; font-weight: bold; color: #333; }
+        .notice-date { font-size: 12px; color: #e67e22; font-weight: bold; margin-bottom: 5px; display:block; }
+        .notice-title { font-size: 16px; font-weight: bold; color: #2c3e50; line-height: 1.4; }
         
-        .back-btn { 
-            background: #95a5a6; margin-bottom: 10px; 
-        }
+        .back-btn { background: #95a5a6; margin-bottom: 10px; }
 
     </style>
 </head>
@@ -240,16 +237,14 @@
 
     <div id="notice-list-modal" class="modal-overlay" onclick="closeModal('notice-list-modal')">
         <div class="modal-content" onclick="event.stopPropagation()">
-            <div class="modal-body" style="padding: 0;">
-                <div style="padding: 20px; border-bottom: 1px solid #ddd; background:#f9f9f9;">
-                    <h3 style="margin:0; color:#e67e22;">📢 공지사항</h3>
-                </div>
-                <div id="notice-list-container" style="max-height: 60vh; overflow-y: auto;">
-                    <div style="padding:20px; text-align:center; color:#999;">로딩중...</div>
-                </div>
-                <div style="padding: 20px;">
-                    <button class="close-btn" style="margin-top:0;" onclick="closeModal('notice-list-modal')">닫기</button>
-                </div>
+            <div style="padding: 20px; border-bottom: 1px solid #e2e8f0; background:white; position: sticky; top:0; z-index:10;">
+                <h3 style="margin:0; color:#e67e22; font-size: 18px;">📢 공지사항</h3>
+            </div>
+            <div id="notice-list-container" class="notice-list-container" style="max-height: 60vh; overflow-y: auto;">
+                <div style="padding:20px; text-align:center; color:#999;">로딩중...</div>
+            </div>
+            <div style="padding: 15px; background: white; border-top: 1px solid #e2e8f0;">
+                <button class="close-btn" style="margin-top:0;" onclick="closeModal('notice-list-modal')">닫기</button>
             </div>
         </div>
     </div>
@@ -257,8 +252,8 @@
     <div id="notice-detail-modal" class="modal-overlay" onclick="closeModal('notice-detail-modal')">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-body">
-                <span id="n-date" style="color:#7f8c8d; font-size:13px; font-weight:bold;"></span>
-                <h3 id="n-title" style="margin:10px 0 20px 0; font-size: 20px; color:#2c3e50; border-bottom:2px solid #e67e22; padding-bottom:10px;"></h3>
+                <span id="n-date" style="color:#e67e22; font-size:13px; font-weight:bold;"></span>
+                <h3 id="n-title" style="margin:10px 0 20px 0; font-size: 20px; color:#2c3e50; border-bottom:2px solid #f0f0f0; padding-bottom:15px;"></h3>
                 
                 <div id="n-content" class="detail-box" style="background:white; border:none; padding:0; font-size:16px;"></div>
 
@@ -271,15 +266,14 @@
     <script>
         const SPREADSHEET_ID = "16TLSPJvbPZE-kWRAx2_W5Pa2p7dzwXiufQmtDQjkYFY"; 
         const SHEET_NAME = "Sheet1"; 
-        const NOTICE_SHEET_NAME = "Sheet2"; // 공지사항 시트
+        const NOTICE_SHEET_NAME = "Sheet2"; 
 
         const API_URL = `https://opensheet.elk.sh/${SPREADSHEET_ID}/${SHEET_NAME}`;
         const NOTICE_API_URL = `https://opensheet.elk.sh/${SPREADSHEET_ID}/${NOTICE_SHEET_NAME}`;
 
         let markerPositions = [];
-        let notices = []; // 공지사항 데이터 저장
+        let notices = []; 
 
-        // 1. 일정 데이터 불러오기
         fetch(API_URL)
             .then(response => response.json())
             .then(data => {
@@ -290,11 +284,9 @@
             })
             .catch(error => console.error("일정 로딩 실패:", error));
 
-        // 2. 공지사항 데이터 불러오기 (미리 로드)
         fetch(NOTICE_API_URL)
             .then(response => response.json())
             .then(data => {
-                // 날짜 최신순 정렬 (내림차순)
                 data.sort((a, b) => parseDate(b.date) - parseDate(a.date));
                 notices = data;
             })
@@ -315,6 +307,7 @@
 
             if (count === 0) return;
 
+            // [핵심 수정: 전체 공간 꽉 채우기 & 간격 재조정]
             let currentScore = 0;
             let scores = [];
             scores.push(0); 
@@ -323,10 +316,11 @@
                 const prevDate = parseDate(schedules[i-1].date);
                 const currDate = parseDate(schedules[i].date);
 
+                // 빡빡하지 않게, 다른 날짜는 더 과감하게 띄움
                 if (currDate === prevDate) {
-                    currentScore += 6.0; 
+                    currentScore += 3; // 같은 날짜 (적당히 가까움)
                 } else {
-                    currentScore += 8.0; 
+                    currentScore += 15; // 다른 날짜 (확실히 멀어짐)
                 }
                 scores.push(currentScore);
             }
@@ -340,7 +334,10 @@
                 if(!item.date || !item.team) return;
                 const itemDate = parseDate(item.date);
                 
-                let positionPercent = 5 + (scores[index] / normalize) * 88; 
+                // [수정] 시작점 2% ~ 끝점 97% 까지 지도 전체를 사용
+                // 기존 5%~88% 보다 훨씬 넓게 써서 위아래 빈 공간을 줄임
+                let positionPercent = 2 + (scores[index] / normalize) * 95; 
+                
                 markerPositions.push(positionPercent);
 
                 if (targetIndex === -1 && itemDate >= today) {
@@ -390,7 +387,6 @@
             }
         }
 
-        /* --- 스크롤 기능 --- */
         function scrollToPlane() {
             const plane = document.getElementById('plane-wrapper');
             if(plane) {
@@ -400,7 +396,6 @@
             }
         }
 
-        /* --- 일정 상세 모달 --- */
         function openScheduleModal(data) {
             const iconChar = data.icon ? data.icon : '🚩';
             document.getElementById('m-category').innerText = data.category || "소속";
@@ -412,19 +407,17 @@
             document.getElementById('modal').style.display = 'flex';
         }
 
-        /* --- 공지사항 관련 로직 --- */
-        
-        // 공지 목록 열기
+        /* --- 공지사항 관련 --- */
         function openNoticeList() {
             const container = document.getElementById('notice-list-container');
-            container.innerHTML = ""; // 초기화
+            container.innerHTML = ""; 
 
             if(notices.length === 0) {
                 container.innerHTML = '<div style="padding:20px; text-align:center;">등록된 공지사항이 없습니다.</div>';
             } else {
                 notices.forEach((item, index) => {
                     const div = document.createElement('div');
-                    div.className = 'notice-list-item';
+                    div.className = 'notice-list-item'; // 박스형 스타일 적용
                     div.innerHTML = `
                         <span class="notice-date">${item.date || ''}</span>
                         <span class="notice-title">${item.title || '제목 없음'}</span>
@@ -436,25 +429,20 @@
             document.getElementById('notice-list-modal').style.display = 'flex';
         }
 
-        // 공지 상세 열기
         function openNoticeDetail(index) {
             const item = notices[index];
-            document.getElementById('notice-list-modal').style.display = 'none'; // 목록 닫기
-            
+            document.getElementById('notice-list-modal').style.display = 'none';
             document.getElementById('n-date').innerText = item.date || "";
             document.getElementById('n-title').innerText = item.title || "";
             document.getElementById('n-content').innerText = item.content || "내용이 없습니다.";
-            
-            document.getElementById('notice-detail-modal').style.display = 'flex'; // 상세 열기
+            document.getElementById('notice-detail-modal').style.display = 'flex'; 
         }
 
-        // 상세 -> 목록으로 돌아가기
         function backToNoticeList() {
             document.getElementById('notice-detail-modal').style.display = 'none';
             document.getElementById('notice-list-modal').style.display = 'flex';
         }
 
-        /* --- 모달 닫기 (공통) --- */
         function closeModal(modalId) {
             document.getElementById(modalId).style.display = 'none';
         }
