@@ -20,7 +20,7 @@
             width: 100%;
             max-width: 600px;
             margin: 0 auto;
-            padding-bottom: 150px; 
+            padding-bottom: 200px; 
         }
 
         .map-chunk { width: 100%; display: block; }
@@ -30,7 +30,9 @@
             position: absolute; 
             left: 50%;
             width: 100px; height: 100px;
-            margin-left: -50px; margin-top: -50px;
+            margin-left: -50px; 
+            /* 비행기 중심이 날짜에 오도록 보정 (-50px) */
+            margin-top: -50px; 
             z-index: 100; 
             filter: drop-shadow(0 20px 20px rgba(0,0,0,0.5));
             pointer-events: none; 
@@ -46,7 +48,7 @@
         .event-marker {
             position: absolute;
             left: 50%;
-            transform: translateX(-50%);
+            transform: translateX(-50%); /* 가로 중앙 정렬 */
             width: 95%; 
             max-width: 380px;
             z-index: 10;
@@ -77,6 +79,8 @@
             flex-grow: 1;
             position: relative;
         }
+        
+        /* 핀 꼬리 위치 미세 조정 */
         .marker-card::after {
             content: ''; position: absolute; left: -8px; top: 50%; transform: translateY(-50%);
             border-top: 8px solid transparent; border-bottom: 8px solid transparent; 
@@ -115,35 +119,23 @@
             z-index: 90; cursor: pointer; display: none;
         }
 
-        /* [모달 스타일 개선] */
+        /* 모달 스타일 */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(5px); }
         .modal-content { 
             background: white; width: 100%; max-width: 450px; 
             border-radius: 20px; overflow: hidden; 
             animation: slideUp 0.3s ease-out; 
-            max-height: 80vh; /* 화면의 80%까지만 차지 */
+            max-height: 80vh; 
             display: flex; flex-direction: column;
         }
         @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         
-        .modal-body { 
-            padding: 25px; 
-            overflow-y: auto; /* 내용이 길면 스크롤 생김 */
-        }
+        .modal-body { padding: 25px; overflow-y: auto; }
         
-        /* 상세 내용 텍스트 박스 */
         .detail-box {
-            background:#f8f9fa; 
-            padding:15px; 
-            border-radius:10px; 
-            margin-bottom:15px;
-            color:#333; 
-            line-height:1.6; 
-            font-size:15px;
-            white-space: pre-wrap; /* 줄바꿈 그대로 적용 */
-            text-align: left;
+            background:#f8f9fa; padding:15px; border-radius:10px; margin-bottom:15px;
+            color:#333; line-height:1.6; font-size:15px; white-space: pre-wrap; text-align: left;
         }
-
         .close-btn { display: block; width: 100%; padding: 15px; margin-top: 10px; background: #2c3e50; color: white; border: none; font-size: 16px; border-radius: 10px; cursor: pointer; }
     </style>
 </head>
@@ -177,31 +169,23 @@
                     <span id="m-category" style="background:#34495e; color:white; padding:4px 10px; border-radius:15px; font-size:12px;">소속</span>
                     <span id="m-date" style="color:#e74c3c; font-weight:bold; font-size:14px;"></span>
                 </div>
-                
                 <h3 id="m-title" style="margin:5px 0 5px 0; font-size: 22px; color:#2c3e50;"></h3>
                 <div id="m-country" style="color:#2980b9; font-weight:bold; margin-bottom:20px; font-size:15px;"></div>
-
                 <div id="m-detail" class="detail-box"></div>
-
                 <div id="m-manager" style="text-align:right; font-size:13px; color:#777; border-top:1px solid #eee; padding-top:10px;"></div>
-
                 <button class="close-btn" onclick="document.getElementById('modal').style.display='none'">닫기</button>
             </div>
         </div>
     </div>
 
     <script>
-        // =========================================================
-        // [설정 1] 구글 스프레드시트 ID
-        // =========================================================
         const SPREADSHEET_ID = "16TLSPJvbPZE-kWRAx2_W5Pa2p7dzwXiufQmtDQjkYFY"; 
         const SHEET_NAME = "Sheet1"; 
         const API_URL = `https://opensheet.elk.sh/${SPREADSHEET_ID}/${SHEET_NAME}`;
 
-        // =========================================================
-        // [설정 2] 선교 기간
-        // =========================================================
-        const START_DATE = new Date("2026-03-01").getTime();
+        // [중요] 날짜 기간을 '2026년 1월 1일'부터로 넓게 잡았습니다.
+        // 이렇게 해야 3월 전인 '지금(2월)'도 지도 상단부에 정상적으로 표시됩니다.
+        const START_DATE = new Date("2026-01-01").getTime();
         const END_DATE = new Date("2026-12-31").getTime();
         const TOTAL_DURATION = END_DATE - START_DATE;
 
@@ -213,15 +197,27 @@
                 schedules = data;
                 renderMarkers();
                 setPlanePosition(); 
-                setTimeout(scrollToToday, 800); 
+                // 이미지 로딩 시간을 고려해 조금 넉넉하게 1초 뒤 이동
+                setTimeout(scrollToToday, 1000); 
             })
             .catch(error => console.error("데이터 로딩 실패:", error));
+
+        // 날짜 파싱 헬퍼 함수 (2026.03.01 같은 형식도 처리)
+        function parseDateString(dateStr) {
+            if (!dateStr) return null;
+            // . 이나 / 를 - 로 바꿔서 표준 형식으로 변환
+            const standardDate = dateStr.replace(/\./g, '-').replace(/\//g, '-');
+            return new Date(standardDate).getTime();
+        }
 
         function setPlanePosition() {
             const today = new Date().getTime();
             let percentage = (today - START_DATE) / TOTAL_DURATION * 100;
-            if(percentage < 5) percentage = 5; 
-            if(percentage > 95) percentage = 95;
+            
+            // 지도 범위 제한 (0% ~ 100%)
+            if(percentage < 0) percentage = 0; 
+            if(percentage > 100) percentage = 100;
+            
             document.getElementById('plane-wrapper').style.top = percentage + "%";
         }
 
@@ -230,12 +226,18 @@
             const today = new Date().getTime();
 
             schedules.forEach((item, index) => {
+                // team과 date가 없으면 패스
                 if(!item.date || !item.team) return;
                 
-                const itemDate = new Date(item.date).getTime();
+                // 날짜 변환 적용
+                const itemDate = parseDateString(item.date);
+                if (!itemDate) return; // 날짜 형식이 이상하면 건너뜀
+
                 let percentage = (itemDate - START_DATE) / TOTAL_DURATION * 100;
-                if(percentage < 2) percentage = 2;
-                if(percentage > 98) percentage = 98;
+                
+                // 지도 범위를 벗어나지 않게 조정 (여백 고려)
+                if(percentage < 1) percentage = 1;
+                if(percentage > 99) percentage = 99;
 
                 const div = document.createElement('div');
                 div.className = 'event-marker';
@@ -269,12 +271,14 @@
 
         function scrollToToday() {
             const plane = document.getElementById('plane-wrapper');
-            const targetScroll = plane.offsetTop - (window.innerHeight / 2);
-            window.scrollTo({ top: targetScroll, behavior: 'smooth' });
-            document.getElementById('go-today-btn').style.display = 'block';
+            // 비행기가 중앙에 오도록 스크롤 (지도 로딩이 덜 됐을 경우를 대비한 방어코드)
+            if(plane) {
+                const targetScroll = plane.offsetTop - (window.innerHeight / 2);
+                window.scrollTo({ top: targetScroll, behavior: 'smooth' });
+                document.getElementById('go-today-btn').style.display = 'block';
+            }
         }
 
-        // [수정됨] 모달 열기 (detail 컬럼 연결)
         function openModal(index) {
             const data = schedules[index];
             const iconChar = data.icon ? data.icon : '🚩';
@@ -283,12 +287,8 @@
             document.getElementById('m-date').innerText = data.display_date || "";
             document.getElementById('m-title').innerText = iconChar + " " + (data.team || "");
             document.getElementById('m-country').innerText = "선교지: " + (data.country || "");
-            
-            // [중요] detail이 있으면 detail을 보여주고, 없으면 desc(요약)를 대신 보여줌
             document.getElementById('m-detail').innerText = data.detail ? data.detail : (data.desc || "상세 내용이 없습니다.");
-            
             document.getElementById('m-manager').innerText = "문의 담당자: " + (data.manager || "미정");
-            
             document.getElementById('modal').style.display = 'flex';
         }
 
