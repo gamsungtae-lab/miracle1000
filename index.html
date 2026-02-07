@@ -16,73 +16,39 @@
 
         /* [지도 컨테이너] */
         .map-container {
-            position: relative; /* 자식 요소들의 기준점 */
+            position: relative; 
             width: 100%;
             max-width: 600px;
             margin: 0 auto;
-            padding-bottom: 150px; /* 마지막 일정이 잘리지 않게 여백 */
+            padding-bottom: 150px; 
         }
 
-        /* [지도 이미지] */
-        .map-chunk {
-            width: 100%;
-            display: block;
-        }
+        .map-chunk { width: 100%; display: block; }
 
-        /* [수정됨] 비행기: 화면 고정이 아니라, 지도 위에 '절대 위치'로 고정 */
+        /* [비행기] */
         .current-plane {
-            position: absolute; /* 지도를 기준으로 위치를 잡음 */
+            position: absolute; 
             left: 50%;
-            /* top 위치는 자바스크립트가 오늘 날짜에 맞춰서 정해줌 */
-            width: 100px; 
-            height: 100px;
-            margin-left: -50px; /* 정중앙 정렬 보정 */
-            margin-top: -50px;
-            z-index: 100; /* 일정 마커보다 더 위에 */
+            width: 100px; height: 100px;
+            margin-left: -50px; margin-top: -50px;
+            z-index: 100; 
             filter: drop-shadow(0 20px 20px rgba(0,0,0,0.5));
-            pointer-events: none; /* 클릭 방해 안 함 */
-            
-            /* 둥둥 떠있는 애니메이션 */
+            pointer-events: none; 
             animation: floatPlane 2s ease-in-out infinite;
-            transition: top 1s ease-out; /* 위치 잡을 때 부드럽게 이동 */
+            transition: top 1s ease-out; 
         }
-
         @keyframes floatPlane {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-15px); }
         }
 
-        /* 비행기 아래에 "현재 위치" 라벨 추가 */
-        .plane-label {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #2c3e50;
-            color: #fff;
-            padding: 5px 12px;
-            border-radius: 15px;
-            font-size: 12px;
-            font-weight: bold;
-            white-space: nowrap;
-            top: 60px; /* 비행기 바로 아래 */
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        }
-        
-        /* [삼각형 꼬리] */
-        .plane-label::after {
-            content: ''; position: absolute; top: -6px; left: 50%; transform: translateX(-50%);
-            border-left: 6px solid transparent; border-right: 6px solid transparent;
-            border-bottom: 6px solid #2c3e50;
-        }
-
-
-        /* [일정 마커 (핀)] */
+        /* [일정 마커] */
         .event-marker {
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
-            width: 90%;
-            max-width: 350px;
+            width: 95%; 
+            max-width: 380px;
             z-index: 10;
             display: flex;
             align-items: center;
@@ -92,40 +58,44 @@
         .event-marker:active { transform: translateX(-50%) scale(0.95); }
 
         .marker-icon-box {
-            width: 50px; height: 50px;
+            width: 45px; height: 45px;
             background: white;
             border: 3px solid #3498db;
             border-radius: 50%;
             display: flex; justify-content: center; align-items: center;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            margin-right: 15px;
+            margin-right: 12px;
             flex-shrink: 0;
-            overflow: hidden; 
+            font-size: 24px; line-height: 1;
         }
-
-        .pixel-icon { width: 32px; height: 32px; image-rendering: pixelated; object-fit: contain; }
 
         .marker-card {
             background: rgba(255, 255, 255, 0.95);
-            padding: 15px 20px;
+            padding: 12px 15px;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             flex-grow: 1;
             position: relative;
         }
-        
         .marker-card::after {
             content: ''; position: absolute; left: -8px; top: 50%; transform: translateY(-50%);
             border-top: 8px solid transparent; border-bottom: 8px solid transparent; 
             border-right: 8px solid rgba(255, 255, 255, 0.95);
         }
 
-        .marker-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
-        .marker-date { font-size: 13px; color: #e74c3c; font-weight: bold; }
-        .marker-manager { font-size: 12px; color: #7f8c8d; background: #eee; padding: 2px 6px; border-radius: 4px; }
+        .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
         
-        .marker-title { font-size: 16px; font-weight: bold; color: #2c3e50; display: block; }
-        .marker-desc { font-size: 13px; color: #555; margin-top: 3px; display: block; }
+        .category-badge {
+            font-size: 11px; font-weight: bold; color: white;
+            background-color: #34495e; 
+            padding: 3px 8px; border-radius: 10px;
+        }
+
+        .marker-date { font-size: 12px; color: #7f8c8d; font-weight: bold; }
+        .marker-title { font-size: 16px; font-weight: bold; color: #2c3e50; display: block; margin-bottom: 4px; }
+        .marker-country { font-size: 14px; color: #2980b9; margin-left: 5px; }
+        .marker-desc { font-size: 13px; color: #555; display: block; line-height: 1.4; border-top: 1px solid #eee; padding-top: 5px; margin-top: 5px;}
+        .marker-manager { font-size: 11px; color: #999; display: block; text-align: right; margin-top: 5px; }
 
         .event-marker.past { opacity: 0.6; filter: grayscale(100%); }
         .event-marker.past .marker-icon-box { border-color: #95a5a6; }
@@ -145,12 +115,36 @@
             z-index: 90; cursor: pointer; display: none;
         }
 
-        /* 모달 스타일 */
+        /* [모달 스타일 개선] */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(5px); }
-        .modal-content { background: white; width: 100%; max-width: 400px; border-radius: 20px; overflow: hidden; animation: slideUp 0.3s ease-out; }
+        .modal-content { 
+            background: white; width: 100%; max-width: 450px; 
+            border-radius: 20px; overflow: hidden; 
+            animation: slideUp 0.3s ease-out; 
+            max-height: 80vh; /* 화면의 80%까지만 차지 */
+            display: flex; flex-direction: column;
+        }
         @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .modal-body { padding: 25px; }
-        .close-btn { display: block; width: 100%; padding: 15px; margin-top: 20px; background: #2c3e50; color: white; border: none; font-size: 16px; border-radius: 10px; cursor: pointer; }
+        
+        .modal-body { 
+            padding: 25px; 
+            overflow-y: auto; /* 내용이 길면 스크롤 생김 */
+        }
+        
+        /* 상세 내용 텍스트 박스 */
+        .detail-box {
+            background:#f8f9fa; 
+            padding:15px; 
+            border-radius:10px; 
+            margin-bottom:15px;
+            color:#333; 
+            line-height:1.6; 
+            font-size:15px;
+            white-space: pre-wrap; /* 줄바꿈 그대로 적용 */
+            text-align: left;
+        }
+
+        .close-btn { display: block; width: 100%; padding: 15px; margin-top: 10px; background: #2c3e50; color: white; border: none; font-size: 16px; border-radius: 10px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -160,10 +154,8 @@
     </header>
 
     <div class="map-container" id="map-area">
-        
         <div id="plane-wrapper" class="current-plane" style="top: 0%;">
             <img src="./icon.png" style="width:100%; height:100%;" alt="비행기">
-            <div class="plane-label">NOW</div>
         </div>
 
         <img src="./01.jpg" class="map-chunk">
@@ -181,10 +173,18 @@
     <div id="modal" class="modal-overlay" onclick="closeModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-body">
-                <div id="m-date" style="color:#e74c3c; font-weight:bold; margin-bottom:5px;"></div>
-                <h3 id="m-title" style="margin-bottom:10px; font-size: 22px;"></h3>
-                <div id="m-manager" style="background:#f1f2f6; display:inline-block; padding:5px 10px; border-radius:5px; font-size:13px; color:#555; margin-bottom:15px;"></div>
-                <p id="m-text" style="color:#555; line-height:1.6;"></p>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <span id="m-category" style="background:#34495e; color:white; padding:4px 10px; border-radius:15px; font-size:12px;">소속</span>
+                    <span id="m-date" style="color:#e74c3c; font-weight:bold; font-size:14px;"></span>
+                </div>
+                
+                <h3 id="m-title" style="margin:5px 0 5px 0; font-size: 22px; color:#2c3e50;"></h3>
+                <div id="m-country" style="color:#2980b9; font-weight:bold; margin-bottom:20px; font-size:15px;"></div>
+
+                <div id="m-detail" class="detail-box"></div>
+
+                <div id="m-manager" style="text-align:right; font-size:13px; color:#777; border-top:1px solid #eee; padding-top:10px;"></div>
+
                 <button class="close-btn" onclick="document.getElementById('modal').style.display='none'">닫기</button>
             </div>
         </div>
@@ -192,13 +192,15 @@
 
     <script>
         // =========================================================
-        // [설정] 스프레드시트 ID
+        // [설정 1] 구글 스프레드시트 ID
         // =========================================================
         const SPREADSHEET_ID = "16TLSPJvbPZE-kWRAx2_W5Pa2p7dzwXiufQmtDQjkYFY"; 
         const SHEET_NAME = "Sheet1"; 
         const API_URL = `https://opensheet.elk.sh/${SPREADSHEET_ID}/${SHEET_NAME}`;
 
-        // 2026년 3월 1일 ~ 12월 31일
+        // =========================================================
+        // [설정 2] 선교 기간
+        // =========================================================
         const START_DATE = new Date("2026-03-01").getTime();
         const END_DATE = new Date("2026-12-31").getTime();
         const TOTAL_DURATION = END_DATE - START_DATE;
@@ -210,36 +212,27 @@
             .then(data => {
                 schedules = data;
                 renderMarkers();
-                setPlanePosition(); // 비행기 위치 잡기
-                
-                // 로딩 후 0.8초 뒤에 비행기 위치로 스크롤 이동
+                setPlanePosition(); 
                 setTimeout(scrollToToday, 800); 
-            });
+            })
+            .catch(error => console.error("데이터 로딩 실패:", error));
 
-        // 1. 비행기를 오늘 날짜 위치에 고정시키는 함수
         function setPlanePosition() {
             const today = new Date().getTime();
             let percentage = (today - START_DATE) / TOTAL_DURATION * 100;
-
-            // 지도 범위를 벗어나지 않게 조절
-            if(percentage < 5) percentage = 5; // 너무 위쪽은 제목에 가리니까 5%부터
+            if(percentage < 5) percentage = 5; 
             if(percentage > 95) percentage = 95;
-
-            // 비행기 위치 설정 (CSS top 값 변경)
-            const plane = document.getElementById('plane-wrapper');
-            plane.style.top = percentage + "%";
+            document.getElementById('plane-wrapper').style.top = percentage + "%";
         }
 
-        // 2. 일정 마커 그리기
         function renderMarkers() {
             const container = document.getElementById('marker-layer');
             const today = new Date().getTime();
 
             schedules.forEach((item, index) => {
-                if(!item.date || !item.title) return;
+                if(!item.date || !item.team) return;
                 
                 const itemDate = new Date(item.date).getTime();
-                
                 let percentage = (itemDate - START_DATE) / TOTAL_DURATION * 100;
                 if(percentage < 2) percentage = 2;
                 if(percentage > 98) percentage = 98;
@@ -247,23 +240,26 @@
                 const div = document.createElement('div');
                 div.className = 'event-marker';
                 div.style.top = percentage + "%"; 
-                
                 if (itemDate < today) div.classList.add('past'); 
 
-                const iconUrl = item.icon ? item.icon : 'https://cdn-icons-png.flaticon.com/512/197/197374.png';
-                const managerName = item.manager ? item.manager : '미정';
+                const iconChar = item.icon ? item.icon : '🚩';
+                const category = item.category ? item.category : '미정';
+                let badgeColor = "#34495e"; 
+                if(category.includes("청년")) badgeColor = "#3498db"; 
+                if(category.includes("장년")) badgeColor = "#27ae60"; 
+                if(category.includes("학교")) badgeColor = "#f1c40f"; 
+                if(category.includes("기도")) badgeColor = "#9b59b6"; 
 
                 div.innerHTML = `
-                    <div class="marker-icon-box">
-                        <img src="${iconUrl}" class="pixel-icon" alt="icon">
-                    </div>
+                    <div class="marker-icon-box">${iconChar}</div>
                     <div class="marker-card">
-                        <div class="marker-header">
+                        <div class="card-top">
+                            <span class="category-badge" style="background-color:${badgeColor}">${category}</span>
                             <span class="marker-date">${item.display_date}</span>
-                            <span class="marker-manager">${managerName}</span>
                         </div>
-                        <span class="marker-title">${item.title}</span>
-                        <span class="marker-desc">${item.desc}</span>
+                        <span class="marker-title">${item.team} <span class="marker-country">(${item.country || ''})</span></span>
+                        <span class="marker-desc">${item.desc || ''}</span>
+                        <span class="marker-manager">담당: ${item.manager || '미정'}</span>
                     </div>
                 `;
                 div.onclick = () => openModal(index);
@@ -271,32 +267,31 @@
             });
         }
 
-        // 3. 비행기가 있는 곳(오늘 위치)으로 화면 스크롤 이동
         function scrollToToday() {
             const plane = document.getElementById('plane-wrapper');
-            
-            // 비행기의 현재 화면상 위치 계산
-            // offsetTop은 지도 맨 위에서부터 비행기까지의 거리
-            const planeTop = plane.offsetTop;
-            const screenHeight = window.innerHeight;
-
-            // 비행기가 화면 중앙에 오도록 스크롤 위치 계산
-            const targetScroll = planeTop - (screenHeight / 2);
-
+            const targetScroll = plane.offsetTop - (window.innerHeight / 2);
             window.scrollTo({ top: targetScroll, behavior: 'smooth' });
-            
-            // 버튼 보이게 하기
             document.getElementById('go-today-btn').style.display = 'block';
         }
 
+        // [수정됨] 모달 열기 (detail 컬럼 연결)
         function openModal(index) {
             const data = schedules[index];
-            document.getElementById('m-date').innerText = data.display_date;
-            document.getElementById('m-title').innerText = data.title;
-            document.getElementById('m-manager').innerText = "담당: " + (data.manager ? data.manager : "미정");
-            document.getElementById('m-text').innerText = data.detail ? data.detail : data.desc;
+            const iconChar = data.icon ? data.icon : '🚩';
+            
+            document.getElementById('m-category').innerText = data.category || "소속";
+            document.getElementById('m-date').innerText = data.display_date || "";
+            document.getElementById('m-title').innerText = iconChar + " " + (data.team || "");
+            document.getElementById('m-country').innerText = "선교지: " + (data.country || "");
+            
+            // [중요] detail이 있으면 detail을 보여주고, 없으면 desc(요약)를 대신 보여줌
+            document.getElementById('m-detail').innerText = data.detail ? data.detail : (data.desc || "상세 내용이 없습니다.");
+            
+            document.getElementById('m-manager').innerText = "문의 담당자: " + (data.manager || "미정");
+            
             document.getElementById('modal').style.display = 'flex';
         }
+
         function closeModal(e) {
             if(e.target === document.getElementById('modal')) document.getElementById('modal').style.display = 'none';
         }
