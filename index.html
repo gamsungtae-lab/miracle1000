@@ -20,16 +20,16 @@
             width: 100%;
             max-width: 600px;
             margin: 0 auto;
-            /* 마지막 일정이 잘리지 않게 하단 여백 충분히 */
+            /* 지도가 길어진 만큼 하단 여백도 넉넉히 */
             padding-bottom: 400px; 
             background-color: #aaddff; 
         }
 
-        /* 지도 이미지 조각 (너비 100%, 높이 자동) */
+        /* 지도 이미지 조각 (너비 100%로 맞춤, 높이는 자동 비율) */
         .map-chunk { 
             width: 100%; 
-            display: block; /* 이미지 사이 공백 제거 */
-            height: auto;
+            display: block; 
+            height: auto; /* 1920px이든 1796px이든 알아서 비율 맞춤 */
         }
 
         /* [비행기] */
@@ -202,7 +202,6 @@
         const SHEET_NAME = "Sheet1"; 
         const API_URL = `https://opensheet.elk.sh/${SPREADSHEET_ID}/${SHEET_NAME}`;
 
-        // 마커 위치 저장용
         let markerPositions = [];
 
         fetch(API_URL)
@@ -228,7 +227,7 @@
 
             if (count === 0) return;
 
-            // [위치 계산 로직]
+            // [위치 계산 로직: 겹침 방지]
             let currentScore = 0;
             let scores = [];
             scores.push(0); 
@@ -237,11 +236,11 @@
                 const prevDate = parseDate(schedules[i-1].date);
                 const currDate = parseDate(schedules[i].date);
 
-                // 같은 날짜면 0.8칸, 다르면 1.5칸 띄움
+                // 같은 날짜면 간격 2배 넓힘 (겹침 방지)
                 if (currDate === prevDate) {
-                    currentScore += 0.8; 
+                    currentScore += 2.0; 
                 } else {
-                    currentScore += 1.5; 
+                    currentScore += 4.0; // 다른 날짜는 더 넓게
                 }
                 scores.push(currentScore);
             }
@@ -280,7 +279,7 @@
 
                 // [중요] 오직 '기타'일 때만 노란색 박스
                 let specialClass = "";
-                if (category.trim() === "기타") {
+                if (category && category.trim() === "기타") {
                     specialClass = "special-event";
                     badgeColor = "#f39c12"; 
                 }
