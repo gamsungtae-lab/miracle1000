@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>미라클 1000 - 선교 네비게이션</title>
+    <style>
+        /* [기본 설정] */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body, html { 
+            margin: 0; padding: 0; 
+            font-family: 'Apple SD Gothic Neo', sans-serif; 
+            background-color: #333; 
+            overflow-x: hidden;
+        }
+
+        /* [지도 컨테이너] */
+        .map-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            padding-bottom: 100px; /* 하단 여백 */
+        }
+
+        /* [지도 이미지] */
+        .map-chunk {
+            width: 100%;
+            display: block;
+        }
+
+        /* [비행기] 화면 중앙 고정 */
+        .fixed-plane {
+            position: fixed;
+            top: 50%; left: 50%;
+            width: 100px; height: 100px;
+            margin-left: -50px; margin-top: -50px;
+            z-index: 100;
+            filter: drop-shadow(0 15px 15px rgba(0,0,0,0.4));
+            pointer-events: none;
+            animation: engine 0.5s infinite alternate;
+        }
+        @keyframes engine { from { transform: translateY(0px); } to { transform: translateY(-3px); } }
+
+        /* [일정 마커 (핀)] */
+        .event-marker {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 350px;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .event-marker:active { transform: translateX(-50%) scale(0.95); }
+
+        /* [왼쪽: 나라 아이콘 (도트)] */
+        .marker-icon-box {
+            width: 50px; height: 50px;
+            background: white;
+            border: 3px solid #3498db;
+            border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            margin-right: 15px;
+            flex-shrink: 0;
+            overflow: hidden; /* 이미지가 둥근 원 밖으로 안 나가게 */
+        }
+
+        .pixel-icon {
+            width: 32px; height: 32px;
+            image-rendering: pixelated; /* 도트가 선명하게 보이게 함 */
+            object-fit: contain;
+        }
+
+        /* [오른쪽: 내용 카드] */
+        .marker-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            flex-grow: 1;
+            position: relative;
+        }
+        
+        /* 말풍선 꼬리 */
+        .marker-card::after {
+            content: ''; position: absolute; left: -8px; top: 50%; transform: translateY(-50%);
+            border-top: 8px solid transparent; border-bottom: 8px solid transparent; 
+            border-right: 8px solid rgba(255, 255, 255, 0.95);
+        }
+
+        .marker-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .marker-date { font-size: 13px; color: #e74c3c; font-weight: bold; }
+        .marker-manager { font-size: 12px; color: #7f8c8d; background: #eee; padding: 2px 6px; border-radius: 4px; }
+        
+        .marker-title { font-size: 16px; font-weight: bold; color: #2c3e50; display: block; }
+        .marker-desc { font-size: 13px; color: #555; margin-top: 3px; display: block; }
+
+        /* 지나간 일정 스타일 */
+        .event-marker.past { opacity: 0.6; filter: grayscale(100%); }
+        .event-marker.past .marker-icon-box { border-color: #95a5a6; }
+
+        /* 헤더 */
+        header {
+            position: fixed; top: 0; left: 0; width: 100%;
+            text-align: center; padding: 15px;
+            background: rgba(255,255,255,0.8); backdrop-filter: blur(5px);
+            z-index: 50; border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+
+        /* 오늘로 가기 버튼 */
+        #go-today-btn {
+            position: fixed; bottom: 30px; right: 20px;
+            background: #2c3e50; color: white;
+            padding: 10px 20px; border-radius: 30px;
+            font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            z-index: 90; cursor: pointer; display: none;
+        }
+
+        /* 모달 (팝업) 스타일 */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(5px); }
+        .modal-content { background: white; width: 100%; max-width: 400px; border-radius: 20px; overflow: hidden; animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-body { padding: 25px; }
+        .close-btn { display: block; width: 100%; padding: 15px; margin-top: 20px; background: #2c3e50; color: white; border: none; font-size: 16px; border-radius: 10px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1 style="font-size: 18px; margin:0;">MIRACLE 1000</h1>
+    </header>
+
+    <img src="./icon.png" class="fixed-plane" alt="비행기">
+
+    <div class="map-container" id="map-area">
+        <img src="./01.jpg" class="map-chunk">
+        <img src="./02.jpg" class="map-chunk">
+        <img src="./03.jpg" class="map-chunk">
+        <img src="./04.jpg" class="map-chunk">
+        <img src="./05.jpg" class="map-chunk">
+        <img src="./06.jpg" class="map-chunk">
+
+        <div id="marker-layer"></div>
+    </div>
+
+    <div id="go-today-btn" onclick="scrollToToday()">📍 오늘 위치로</div>
+
+    <div id="modal" class="modal-overlay" onclick="closeModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-body">
+                <div id="m-date" style="color:#e74c3c; font-weight:bold; margin-bottom:5px;"></div>
+                <h3 id="m-title" style="margin-bottom:10px; font-size: 22px;"></h3>
+                <div id="m-manager" style="background:#f1f2f6; display:inline-block; padding:5px 10px; border-radius:5px; font-size:13px; color:#555; margin-bottom:15px;"></div>
+                <p id="m-text" style="color:#555; line-height:1.6;"></p>
+                <button class="close-btn" onclick="document.getElementById('modal').style.display='none'">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =========================================================
+        // [설정] 본인의 스프레드시트 ID로 변경해주세요
+        // =========================================================
+        const SPREADSHEET_ID = "16TLSPJvbPZE-kWRAx2_W5Pa2p7dzwXiufQmtDQjkYFY"; 
+        const SHEET_NAME = "Sheet1"; 
+        const API_URL = `https://opensheet.elk.sh/${SPREADSHEET_ID}/${SHEET_NAME}`;
+
+        // [설정] 지도 날짜 범위 (2026년 3월 1일 ~ 12월 31일)
+        const START_DATE = new Date("2026-03-01").getTime();
+        const END_DATE = new Date("2026-12-31").getTime();
+        const TOTAL_DURATION = END_DATE - START_DATE;
+
+        let schedules = []; 
+
+        fetch(API_URL)
+            .then(response => response.json())
+            .then(data => {
+                schedules = data;
+                renderMarkers();
+                setTimeout(scrollToToday, 500); 
+            });
+
+        function renderMarkers() {
+            const container = document.getElementById('marker-layer');
+            const today = new Date().getTime();
+
+            schedules.forEach((item, index) => {
+                if(!item.date || !item.title) return;
+                
+                const itemDate = new Date(item.date).getTime();
+                
+                // 위치 계산 (0% ~ 100%)
+                let percentage = (itemDate - START_DATE) / TOTAL_DURATION * 100;
+                if(percentage < 2) percentage = 2;
+                if(percentage > 98) percentage = 98;
+
+                const div = document.createElement('div');
+                div.className = 'event-marker';
+                div.style.top = percentage + "%"; 
+                
+                if (itemDate < today) div.classList.add('past'); 
+
+                // 아이콘이 없으면 기본 국기 아이콘 사용 (예시)
+                const iconUrl = item.icon ? item.icon : 'https://cdn-icons-png.flaticon.com/512/197/197374.png';
+                const managerName = item.manager ? item.manager : '담당자 미정';
+
+                div.innerHTML = `
+                    <div class="marker-icon-box">
+                        <img src="${iconUrl}" class="pixel-icon" alt="icon">
+                    </div>
+                    <div class="marker-card">
+                        <div class="marker-header">
+                            <span class="marker-date">${item.display_date}</span>
+                            <span class="marker-manager">${managerName}</span>
+                        </div>
+                        <span class="marker-title">${item.title}</span>
+                        <span class="marker-desc">${item.desc}</span>
+                    </div>
+                `;
+                div.onclick = () => openModal(index);
+                container.appendChild(div);
+            });
+        }
+
+        function scrollToToday() {
+            const today = new Date().getTime();
+            let percentage = (today - START_DATE) / TOTAL_DURATION;
+            if(percentage < 0) percentage = 0;
+            if(percentage > 1) percentage = 1;
+
+            const mapHeight = document.getElementById('map-area').offsetHeight;
+            const screenHeight = window.innerHeight;
+            const targetScroll = (mapHeight * percentage) - (screenHeight / 2);
+
+            window.scrollTo({ top: targetScroll, behavior: 'smooth' });
+            document.getElementById('go-today-btn').style.display = 'block';
+        }
+
+        function openModal(index) {
+            const data = schedules[index];
+            document.getElementById('m-date').innerText = data.display_date;
+            document.getElementById('m-title').innerText = data.title;
+            document.getElementById('m-manager').innerText = "담당: " + (data.manager ? data.manager : "미정");
+            document.getElementById('m-text').innerText = data.detail ? data.detail : data.desc;
+            document.getElementById('modal').style.display = 'flex';
+        }
+        function closeModal(e) {
+            if(e.target === document.getElementById('modal')) document.getElementById('modal').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
