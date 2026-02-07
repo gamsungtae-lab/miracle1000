@@ -10,7 +10,7 @@
         body, html { 
             margin: 0; padding: 0; 
             font-family: 'Apple SD Gothic Neo', sans-serif; 
-            background-color: #333; 
+            background-color: #333; /* PC 배경 */
             overflow-x: hidden;
         }
 
@@ -20,16 +20,22 @@
             width: 100%;
             max-width: 600px;
             margin: 0 auto;
-            /* 지도가 길어진 만큼 하단 여백도 넉넉히 */
-            padding-bottom: 400px; 
-            background-color: #aaddff; 
+            
+            /* [수정 1] 하단 여백 줄임 (400px -> 150px) */
+            padding-bottom: 150px; 
+            
+            /* [수정 2] 파란색 배경 삭제 -> 마지막 구름 그림과 비슷한 색으로 변경 */
+            /* 이렇게 하면 그림이 끝나도 자연스럽게 이어져 보입니다 */
+            background-color: #fff8e1; 
         }
 
-        /* 지도 이미지 조각 (너비 100%로 맞춤, 높이는 자동 비율) */
+        /* 지도 이미지 조각 */
         .map-chunk { 
             width: 100%; 
             display: block; 
-            height: auto; /* 1920px이든 1796px이든 알아서 비율 맞춤 */
+            height: auto; 
+            /* 이미지 사이에 미세한 틈이 생기는 것을 방지 */
+            vertical-align: bottom; 
         }
 
         /* [비행기] */
@@ -202,6 +208,7 @@
         const SHEET_NAME = "Sheet1"; 
         const API_URL = `https://opensheet.elk.sh/${SPREADSHEET_ID}/${SHEET_NAME}`;
 
+        // 마커 위치 저장용
         let markerPositions = [];
 
         fetch(API_URL)
@@ -227,7 +234,7 @@
 
             if (count === 0) return;
 
-            // [위치 계산 로직: 겹침 방지]
+            // [위치 계산: 거리 더 넓히기]
             let currentScore = 0;
             let scores = [];
             scores.push(0); 
@@ -236,11 +243,13 @@
                 const prevDate = parseDate(schedules[i-1].date);
                 const currDate = parseDate(schedules[i].date);
 
-                // 같은 날짜면 간격 2배 넓힘 (겹침 방지)
+                // [수정] 간격 대폭 확대
+                // 같은 날짜: 4.0 (이전보다 2배 넓힘)
+                // 다른 날짜: 8.0 (확실한 구분)
                 if (currDate === prevDate) {
-                    currentScore += 2.0; 
+                    currentScore += 4.0; 
                 } else {
-                    currentScore += 4.0; // 다른 날짜는 더 넓게
+                    currentScore += 8.0; 
                 }
                 scores.push(currentScore);
             }
@@ -277,7 +286,7 @@
                 if(category.includes("학교")) badgeColor = "#f1c40f"; 
                 if(category.includes("기도")) badgeColor = "#9b59b6"; 
 
-                // [중요] 오직 '기타'일 때만 노란색 박스
+                // [기타 카테고리 확인]
                 let specialClass = "";
                 if (category && category.trim() === "기타") {
                     specialClass = "special-event";
