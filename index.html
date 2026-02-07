@@ -29,7 +29,6 @@
             background-color: transparent; 
         }
 
-        /* [지도 이미지 조각] */
         .map-chunk { 
             width: 100%; 
             display: block; 
@@ -65,8 +64,9 @@
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
-            width: 95%; 
-            max-width: 380px;
+            /* 박스 폭 85%, 최대 340px 유지 */
+            width: 85%; 
+            max-width: 340px; 
             z-index: 10;
             display: flex;
             align-items: center;
@@ -90,7 +90,7 @@
         /* [기본 카드 스타일] */
         .marker-card {
             background: rgba(255, 255, 255, 0.95);
-            padding: 12px 15px;
+            padding: 12px 15px; /* 내부 여백 유지 */
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             flex-grow: 1;
@@ -102,7 +102,6 @@
             border-right: 8px solid rgba(255, 255, 255, 0.95);
         }
 
-        /* [기타 카테고리 강조 스타일] */
         .marker-card.special-event {
             background: #fff9c4; 
             border: 2px solid #fbc02d; 
@@ -111,6 +110,7 @@
             border-right-color: #fff9c4;
         }
 
+        /* 카드 내부 간결화 */
         .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
         
         .category-badge {
@@ -120,10 +120,9 @@
         }
 
         .marker-date { font-size: 12px; color: #7f8c8d; font-weight: bold; }
-        .marker-title { font-size: 16px; font-weight: bold; color: #2c3e50; display: block; margin-bottom: 4px; }
+        .marker-title { font-size: 16px; font-weight: bold; color: #2c3e50; display: block; margin: 0; }
+        /* desc와 manager 스타일 삭제 (지도에서 안 보이므로) */
         .marker-country { font-size: 14px; color: #2980b9; margin-left: 5px; }
-        .marker-desc { font-size: 13px; color: #555; display: block; line-height: 1.4; border-top: 1px solid #eee; padding-top: 5px; margin-top: 5px;}
-        .marker-manager { font-size: 11px; color: #999; display: block; text-align: right; margin-top: 5px; }
 
         .event-marker.past { opacity: 0.6; filter: grayscale(100%); }
         .event-marker.past .marker-icon-box { border-color: #95a5a6; }
@@ -135,7 +134,6 @@
             z-index: 50; border-bottom: 1px solid rgba(0,0,0,0.1);
         }
 
-        /* [플로팅 버튼 스타일] */
         .floating-btn {
             position: fixed; right: 20px;
             color: white;
@@ -149,15 +147,13 @@
         #notice-btn { bottom: 90px; background: #e67e22; }
         #go-today-btn { bottom: 30px; background: #2c3e50; display: none; }
 
-        /* [모달 공통] */
+        /* [모달] */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(5px); }
         .modal-content { 
-            background: #f8f9fa; /* 기본 배경 */
-            width: 100%; max-width: 450px; 
+            background: #f8f9fa; width: 100%; max-width: 450px; 
             border-radius: 20px; overflow: hidden; 
             animation: slideUp 0.3s ease-out; 
-            max-height: 85vh; 
-            display: flex; flex-direction: column;
+            max-height: 85vh; display: flex; flex-direction: column;
         }
         @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         
@@ -169,36 +165,18 @@
         }
         .close-btn { display: block; width: 100%; padding: 15px; margin-top: 10px; background: #2c3e50; color: white; border: none; font-size: 16px; border-radius: 10px; cursor: pointer; }
 
-        /* [공지사항 리스트 스타일 - 연보라 그라데이션 & 글라스] */
-        .notice-list-container {
-            padding: 15px;
-            background-color: #f8f9fa; 
-        }
-
+        /* [공지사항 스타일] */
+        .notice-list-container { padding: 15px; background-color: #f8f9fa; }
         .notice-list-item {
-            /* 연보라 그라데이션 */
             background: linear-gradient(135deg, #f3e7ff 0%, #e8daff 100%);
-            /* 약간의 반투명 효과 (글라스 느낌) */
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            
-            padding: 15px;
-            border-radius: 15px; 
-            margin-bottom: 12px; 
-            cursor: pointer;
-            
-            /* 부드러운 그림자와 테두리 */
-            box-shadow: 0 4px 15px rgba(147, 112, 219, 0.15); 
-            border: 1px solid rgba(255, 255, 255, 0.6); 
-            
-            transition: transform 0.1s, box-shadow 0.1s;
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            padding: 15px; border-radius: 15px; margin-bottom: 12px; 
+            cursor: pointer; box-shadow: 0 4px 15px rgba(147, 112, 219, 0.15); 
+            border: 1px solid rgba(255, 255, 255, 0.6); transition: transform 0.1s;
         }
         .notice-list-item:active { transform: scale(0.98); }
-        
-        /* 공지사항 텍스트 색상 조금 더 진하게 */
         .notice-date { font-size: 12px; color: #8e44ad; font-weight: bold; margin-bottom: 6px; display:block; }
         .notice-title { font-size: 16px; font-weight: bold; color: #4a235a; line-height: 1.4; }
-        
         .back-btn { background: #95a5a6; margin-bottom: 10px; }
 
     </style>
@@ -238,8 +216,15 @@
                 </div>
                 <h3 id="m-title" style="margin:5px 0 5px 0; font-size: 22px; color:#2c3e50;"></h3>
                 <div id="m-country" style="color:#2980b9; font-weight:bold; margin-bottom:20px; font-size:15px;"></div>
+                
+                <div id="m-desc-box" style="margin-bottom: 10px; font-weight: bold; color: #34495e; font-size: 16px;">
+                    📌 <span id="m-desc"></span>
+                </div>
+
                 <div id="m-detail" class="detail-box"></div>
+                
                 <div id="m-manager" style="text-align:right; font-size:13px; color:#777; border-top:1px solid #eee; padding-top:10px;"></div>
+                
                 <button class="close-btn" onclick="closeModal('modal')">닫기</button>
             </div>
         </div>
@@ -307,7 +292,6 @@
             return new Date(standardDate).getTime();
         }
 
-        /* --- 지도 및 마커 렌더링 --- */
         function renderMap(schedules) {
             const container = document.getElementById('marker-layer');
             const today = new Date().getTime();
@@ -323,11 +307,10 @@
                 const prevDate = parseDate(schedules[i-1].date);
                 const currDate = parseDate(schedules[i].date);
 
-                // [수정: 겹침 문제 해결을 위한 간격 재조정]
                 if (currDate === prevDate) {
-                    currentScore += 12; // 같은 날짜 간격을 4 -> 12로 대폭 확대 (이제 안 겹침)
+                    currentScore += 12; 
                 } else {
-                    currentScore += 40; // 다른 날짜 간격도 25 -> 40으로 늘려 전체 비율 유지
+                    currentScore += 40; 
                 }
                 scores.push(currentScore);
             }
@@ -370,6 +353,7 @@
                     badgeColor = "#f39c12"; 
                 }
 
+                /* [수정] 카드 내용을 최소화 (핵심사역, 담당자 제거) */
                 div.innerHTML = `
                     <div class="marker-icon-box">${iconChar}</div>
                     <div class="marker-card ${specialClass}">
@@ -378,8 +362,6 @@
                             <span class="marker-date">${item.display_date}</span>
                         </div>
                         <span class="marker-title">${item.team} <span class="marker-country">(${item.country || ''})</span></span>
-                        <span class="marker-desc">${item.desc || ''}</span>
-                        <span class="marker-manager">담당: ${item.manager || '미정'}</span>
                     </div>
                 `;
                 div.onclick = () => openScheduleModal(schedules[index]);
@@ -402,18 +384,23 @@
             }
         }
 
+        /* [수정] 일정 상세 모달 열기 */
         function openScheduleModal(data) {
             const iconChar = data.icon ? data.icon : '🚩';
             document.getElementById('m-category').innerText = data.category || "소속";
             document.getElementById('m-date').innerText = data.display_date || "";
             document.getElementById('m-title').innerText = iconChar + " " + (data.team || "");
             document.getElementById('m-country').innerText = "선교지: " + (data.country || "");
-            document.getElementById('m-detail').innerText = data.detail ? data.detail : (data.desc || "상세 내용이 없습니다.");
+            
+            // [추가] desc(핵심사역)를 모달에 표시
+            const desc = data.desc ? data.desc : "핵심 사역 정보 없음";
+            document.getElementById('m-desc').innerText = desc;
+
+            document.getElementById('m-detail').innerText = data.detail ? data.detail : "상세 내용이 없습니다.";
             document.getElementById('m-manager').innerText = "문의 담당자: " + (data.manager || "미정");
             document.getElementById('modal').style.display = 'flex';
         }
 
-        /* --- 공지사항 관련 --- */
         function openNoticeList() {
             const container = document.getElementById('notice-list-container');
             container.innerHTML = ""; 
