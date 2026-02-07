@@ -152,7 +152,7 @@
         /* [모달 공통] */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(5px); }
         .modal-content { 
-            background: #f1f5f9; /* 모달 배경을 약간 회색으로 변경 (카드 구분을 위해) */
+            background: #f1f5f9; 
             width: 100%; max-width: 450px; 
             border-radius: 20px; overflow: hidden; 
             animation: slideUp 0.3s ease-out; 
@@ -161,7 +161,7 @@
         }
         @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         
-        .modal-body { padding: 25px; overflow-y: auto; background: white; } /* 일반 모달은 흰색 유지 */
+        .modal-body { padding: 25px; overflow-y: auto; background: white; }
         
         .detail-box {
             background:#f8f9fa; padding:15px; border-radius:10px; margin-bottom:15px;
@@ -169,20 +169,20 @@
         }
         .close-btn { display: block; width: 100%; padding: 15px; margin-top: 10px; background: #2c3e50; color: white; border: none; font-size: 16px; border-radius: 10px; cursor: pointer; }
 
-        /* [수정됨] 공지사항 리스트 스타일 (박스형 카드) */
+        /* [공지사항 리스트 스타일] */
         .notice-list-container {
             padding: 15px;
-            background-color: #f1f5f9; /* 회색 배경 */
+            background-color: #f1f5f9; 
         }
 
         .notice-list-item {
-            background: white; /* 카드는 흰색 */
+            background: white; 
             padding: 15px;
-            border-radius: 12px; /* 둥근 모서리 */
-            margin-bottom: 12px; /* 카드 간 간격 */
+            border-radius: 12px; 
+            margin-bottom: 12px; 
             cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* 살짝 그림자 */
-            border: 1px solid #e2e8f0; /* 연한 테두리 */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
+            border: 1px solid #e2e8f0; 
             transition: transform 0.1s;
         }
         .notice-list-item:active { transform: scale(0.98); background: #fdfdfd; }
@@ -211,6 +211,7 @@
         <img src="./04.jpg" class="map-chunk">
         <img src="./05.jpg" class="map-chunk">
         <img src="./06.jpg" class="map-chunk">
+        <img src="./07.jpg" class="map-chunk">
 
         <div id="marker-layer"></div>
     </div>
@@ -254,9 +255,7 @@
             <div class="modal-body">
                 <span id="n-date" style="color:#e67e22; font-size:13px; font-weight:bold;"></span>
                 <h3 id="n-title" style="margin:10px 0 20px 0; font-size: 20px; color:#2c3e50; border-bottom:2px solid #f0f0f0; padding-bottom:15px;"></h3>
-                
                 <div id="n-content" class="detail-box" style="background:white; border:none; padding:0; font-size:16px;"></div>
-
                 <button class="close-btn back-btn" onclick="backToNoticeList()">목록으로</button>
                 <button class="close-btn" onclick="closeModal('notice-detail-modal')">닫기</button>
             </div>
@@ -307,7 +306,7 @@
 
             if (count === 0) return;
 
-            // [핵심 수정: 전체 공간 꽉 채우기 & 간격 재조정]
+            // [핵심 수정: 7장에 맞춰 간격 대폭 확대]
             let currentScore = 0;
             let scores = [];
             scores.push(0); 
@@ -316,11 +315,11 @@
                 const prevDate = parseDate(schedules[i-1].date);
                 const currDate = parseDate(schedules[i].date);
 
-                // 빡빡하지 않게, 다른 날짜는 더 과감하게 띄움
+                // 지도가 길어진 만큼 간격을 더 넓게 벌림
                 if (currDate === prevDate) {
-                    currentScore += 3; // 같은 날짜 (적당히 가까움)
+                    currentScore += 4; // 같은 날짜 (기존 3 -> 4)
                 } else {
-                    currentScore += 15; // 다른 날짜 (확실히 멀어짐)
+                    currentScore += 25; // 다른 날짜 (기존 15 -> 25로 대폭 확대)
                 }
                 scores.push(currentScore);
             }
@@ -334,8 +333,7 @@
                 if(!item.date || !item.team) return;
                 const itemDate = parseDate(item.date);
                 
-                // [수정] 시작점 2% ~ 끝점 97% 까지 지도 전체를 사용
-                // 기존 5%~88% 보다 훨씬 넓게 써서 위아래 빈 공간을 줄임
+                // 지도 범위 (2% ~ 97%) - 시작과 끝을 꽉 채우되 살짝 여유
                 let positionPercent = 2 + (scores[index] / normalize) * 95; 
                 
                 markerPositions.push(positionPercent);
@@ -417,7 +415,7 @@
             } else {
                 notices.forEach((item, index) => {
                     const div = document.createElement('div');
-                    div.className = 'notice-list-item'; // 박스형 스타일 적용
+                    div.className = 'notice-list-item'; 
                     div.innerHTML = `
                         <span class="notice-date">${item.date || ''}</span>
                         <span class="notice-title">${item.title || '제목 없음'}</span>
