@@ -10,7 +10,7 @@
         body, html { 
             margin: 0; padding: 0; 
             font-family: 'Apple SD Gothic Neo', sans-serif; 
-            background-color: #333; /* PC 배경 */
+            background-color: #333; 
             overflow-x: hidden;
         }
 
@@ -20,22 +20,18 @@
             width: 100%;
             max-width: 600px;
             margin: 0 auto;
-            
-            /* [수정 1] 하단 여백 줄임 (400px -> 150px) */
-            padding-bottom: 150px; 
-            
-            /* [수정 2] 파란색 배경 삭제 -> 마지막 구름 그림과 비슷한 색으로 변경 */
-            /* 이렇게 하면 그림이 끝나도 자연스럽게 이어져 보입니다 */
-            background-color: #fff8e1; 
+            /* 그림 끝에서 딱 끝나도록 하단 여백 0 */
+            padding-bottom: 0; 
+            background-color: transparent; 
         }
 
-        /* 지도 이미지 조각 */
+        /* [핵심] 지도 이미지 조각 */
+        /* 너비는 100%로 맞추고, 높이는 이미지 원본 비율(1920)대로 자동 조절 */
         .map-chunk { 
             width: 100%; 
             display: block; 
             height: auto; 
-            /* 이미지 사이에 미세한 틈이 생기는 것을 방지 */
-            vertical-align: bottom; 
+            vertical-align: bottom; /* 이미지 사이 미세한 틈 제거 */
         }
 
         /* [비행기] */
@@ -103,7 +99,7 @@
             border-right: 8px solid rgba(255, 255, 255, 0.95);
         }
 
-        /* [기타 카테고리 강조 스타일] */
+        /* [기타 카테고리 강조 스타일 - 노란색] */
         .marker-card.special-event {
             background: #fff9c4; 
             border: 2px solid #fbc02d; 
@@ -234,7 +230,7 @@
 
             if (count === 0) return;
 
-            // [위치 계산: 거리 더 넓히기]
+            // [위치 계산 로직]
             let currentScore = 0;
             let scores = [];
             scores.push(0); 
@@ -243,11 +239,9 @@
                 const prevDate = parseDate(schedules[i-1].date);
                 const currDate = parseDate(schedules[i].date);
 
-                // [수정] 간격 대폭 확대
-                // 같은 날짜: 4.0 (이전보다 2배 넓힘)
-                // 다른 날짜: 8.0 (확실한 구분)
+                // [중요] 같은 날짜 6.0 간격, 다른 날짜 8.0 간격
                 if (currDate === prevDate) {
-                    currentScore += 4.0; 
+                    currentScore += 6.0; 
                 } else {
                     currentScore += 8.0; 
                 }
@@ -263,8 +257,9 @@
                 if(!item.date || !item.team) return;
                 const itemDate = parseDate(item.date);
                 
-                // 지도 범위 (5% ~ 90%)
-                let positionPercent = 5 + (scores[index] / normalize) * 85; 
+                // 지도 범위 (5% ~ 93%)
+                // 맨 끝 일정이 짤리지 않게 93%로 제한
+                let positionPercent = 5 + (scores[index] / normalize) * 88; 
                 
                 markerPositions.push(positionPercent);
 
@@ -286,7 +281,7 @@
                 if(category.includes("학교")) badgeColor = "#f1c40f"; 
                 if(category.includes("기도")) badgeColor = "#9b59b6"; 
 
-                // [기타 카테고리 확인]
+                // [기타 카테고리 체크]
                 let specialClass = "";
                 if (category && category.trim() === "기타") {
                     specialClass = "special-event";
