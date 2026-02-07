@@ -64,7 +64,6 @@
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
-            /* 박스 폭 85%, 최대 340px 유지 */
             width: 85%; 
             max-width: 340px; 
             z-index: 10;
@@ -90,7 +89,7 @@
         /* [기본 카드 스타일] */
         .marker-card {
             background: rgba(255, 255, 255, 0.95);
-            padding: 12px 15px; /* 내부 여백 유지 */
+            padding: 12px 15px;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             flex-grow: 1;
@@ -110,7 +109,6 @@
             border-right-color: #fff9c4;
         }
 
-        /* 카드 내부 간결화 */
         .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
         
         .category-badge {
@@ -119,9 +117,15 @@
             padding: 3px 8px; border-radius: 10px;
         }
 
-        .marker-date { font-size: 12px; color: #7f8c8d; font-weight: bold; }
+        /* [수정] 날짜 가시성 강화 (크게, 진하게) */
+        .marker-date { 
+            font-size: 14px; 
+            color: #333; /* 진한 회색 */
+            font-weight: 800; /* 더 굵게 */
+            letter-spacing: -0.5px;
+        }
+
         .marker-title { font-size: 16px; font-weight: bold; color: #2c3e50; display: block; margin: 0; }
-        /* desc와 manager 스타일 삭제 (지도에서 안 보이므로) */
         .marker-country { font-size: 14px; color: #2980b9; margin-left: 5px; }
 
         .event-marker.past { opacity: 0.6; filter: grayscale(100%); }
@@ -215,15 +219,15 @@
                     <span id="m-date" style="color:#e74c3c; font-weight:bold; font-size:14px;"></span>
                 </div>
                 <h3 id="m-title" style="margin:5px 0 5px 0; font-size: 22px; color:#2c3e50;"></h3>
-                <div id="m-country" style="color:#2980b9; font-weight:bold; margin-bottom:20px; font-size:15px;"></div>
+                <div id="m-country" style="color:#2980b9; font-weight:bold; margin-bottom:10px; font-size:15px;"></div>
                 
+                <div id="m-manager" style="color:#7f8c8d; font-size:14px; margin-bottom: 20px; font-weight: bold;"></div>
+
                 <div id="m-desc-box" style="margin-bottom: 10px; font-weight: bold; color: #34495e; font-size: 16px;">
                     📌 <span id="m-desc"></span>
                 </div>
 
                 <div id="m-detail" class="detail-box"></div>
-                
-                <div id="m-manager" style="text-align:right; font-size:13px; color:#777; border-top:1px solid #eee; padding-top:10px;"></div>
                 
                 <button class="close-btn" onclick="closeModal('modal')">닫기</button>
             </div>
@@ -307,10 +311,11 @@
                 const prevDate = parseDate(schedules[i-1].date);
                 const currDate = parseDate(schedules[i].date);
 
+                // [중요 수정] 같은 날짜 간격 대폭 확대
                 if (currDate === prevDate) {
-                    currentScore += 12; 
+                    currentScore += 30; // 12 -> 30 (카드 높이만큼 충분히 벌림)
                 } else {
-                    currentScore += 40; 
+                    currentScore += 50; // 40 -> 50 (날짜 구분도 확실히)
                 }
                 scores.push(currentScore);
             }
@@ -353,7 +358,6 @@
                     badgeColor = "#f39c12"; 
                 }
 
-                /* [수정] 카드 내용을 최소화 (핵심사역, 담당자 제거) */
                 div.innerHTML = `
                     <div class="marker-icon-box">${iconChar}</div>
                     <div class="marker-card ${specialClass}">
@@ -384,7 +388,6 @@
             }
         }
 
-        /* [수정] 일정 상세 모달 열기 */
         function openScheduleModal(data) {
             const iconChar = data.icon ? data.icon : '🚩';
             document.getElementById('m-category').innerText = data.category || "소속";
@@ -392,12 +395,15 @@
             document.getElementById('m-title').innerText = iconChar + " " + (data.team || "");
             document.getElementById('m-country').innerText = "선교지: " + (data.country || "");
             
-            // [추가] desc(핵심사역)를 모달에 표시
+            // [수정] 담당자를 상단으로 이동하여 표시
+            const managerName = data.manager ? data.manager : "미정";
+            document.getElementById('m-manager').innerText = "담당: " + managerName;
+
             const desc = data.desc ? data.desc : "핵심 사역 정보 없음";
             document.getElementById('m-desc').innerText = desc;
 
             document.getElementById('m-detail').innerText = data.detail ? data.detail : "상세 내용이 없습니다.";
-            document.getElementById('m-manager').innerText = "문의 담당자: " + (data.manager || "미정");
+            
             document.getElementById('modal').style.display = 'flex';
         }
 
