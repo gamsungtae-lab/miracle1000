@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MIRACLE SCHEDULE</title>
+    
+    <link rel="manifest" href="./manifest.json">
+    
+    <link rel="apple-touch-icon" href="./icon.png">
+    
+    <link rel="icon" type="image/png" href="./icon.png">
     <meta property="og:type" content="website">
     <meta property="og:title" content="MIRACLE SCHEDULE">
     <meta property="og:description" content="2026년 미라클 단기선교 일정 및 공지사항">
@@ -117,11 +123,10 @@
             padding: 3px 8px; border-radius: 10px;
         }
 
-        /* [수정] 날짜 가시성 강화 (크게, 진하게) */
         .marker-date { 
             font-size: 14px; 
-            color: #333; /* 진한 회색 */
-            font-weight: 800; /* 더 굵게 */
+            color: #333; 
+            font-weight: 800; 
             letter-spacing: -0.5px;
         }
 
@@ -311,11 +316,10 @@
                 const prevDate = parseDate(schedules[i-1].date);
                 const currDate = parseDate(schedules[i].date);
 
-                // [중요 수정] 같은 날짜 간격 대폭 확대
                 if (currDate === prevDate) {
-                    currentScore += 30; // 12 -> 30 (카드 높이만큼 충분히 벌림)
+                    currentScore += 30; // 겹침 방지 간격
                 } else {
-                    currentScore += 50; // 40 -> 50 (날짜 구분도 확실히)
+                    currentScore += 50; 
                 }
                 scores.push(currentScore);
             }
@@ -395,7 +399,6 @@
             document.getElementById('m-title').innerText = iconChar + " " + (data.team || "");
             document.getElementById('m-country').innerText = "선교지: " + (data.country || "");
             
-            // [수정] 담당자를 상단으로 이동하여 표시
             const managerName = data.manager ? data.manager : "미정";
             document.getElementById('m-manager').innerText = "담당: " + managerName;
 
