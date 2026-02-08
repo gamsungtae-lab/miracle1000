@@ -6,10 +6,9 @@
     <title>MIRACLE SCHEDULE</title>
     
     <link rel="manifest" href="./manifest.json">
-    
     <link rel="apple-touch-icon" href="./icon.png">
-    
     <link rel="icon" type="image/png" href="./icon.png">
+
     <meta property="og:type" content="website">
     <meta property="og:title" content="MIRACLE SCHEDULE">
     <meta property="og:description" content="2026년 미라클 단기선교 일정 및 공지사항">
@@ -123,6 +122,7 @@
             padding: 3px 8px; border-radius: 10px;
         }
 
+        /* 날짜 가시성 강화 */
         .marker-date { 
             font-size: 14px; 
             color: #333; 
@@ -198,7 +198,7 @@
 
     <div class="map-container" id="map-area">
         <div id="plane-wrapper" class="current-plane" style="top: 0%;">
-            <img src="./icon.png" class="plane-img" alt="비행기">
+            <img src="./plane.png" class="plane-img" alt="비행기">
         </div>
 
         <img src="./01.jpg" class="map-chunk">
@@ -317,7 +317,7 @@
                 const currDate = parseDate(schedules[i].date);
 
                 if (currDate === prevDate) {
-                    currentScore += 30; // 겹침 방지 간격
+                    currentScore += 30; 
                 } else {
                     currentScore += 50; 
                 }
@@ -333,7 +333,6 @@
                 if(!item.date || !item.team) return;
                 const itemDate = parseDate(item.date);
                 
-                // 지도 범위 (2% ~ 97%)
                 let positionPercent = 2 + (scores[index] / normalize) * 95; 
                 
                 markerPositions.push(positionPercent);
