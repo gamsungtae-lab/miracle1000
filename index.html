@@ -9,6 +9,21 @@
     <link rel="apple-touch-icon" href="./icon.png">
     <link rel="icon" type="image/png" href="./icon.png">
 
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(function(OneSignal) {
+        OneSignal.init({
+          appId: "cfcac60f-c416-4f7f-97bc-6e0e6eed7bb6", // [수정필요] 발급받은 App ID를 여기에 넣으세요
+          safari_web_id: "여기에_SAFARI_ID", // (옵션: 없으면 비워둬도 됨)
+          notifyButton: {
+            enable: true, // 우측 하단에 알림 구독 종 모양 아이콘 표시
+          },
+          allowLocalhostAsSecureOrigin: true,
+        });
+      });
+    </script>
+
     <meta property="og:type" content="website">
     <meta property="og:title" content="MIRACLE SCHEDULE">
     <meta property="og:description" content="2026년 미라클 단기선교 일정 및 공지사항">
