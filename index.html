@@ -14,13 +14,16 @@
       window.OneSignalDeferred = window.OneSignalDeferred || [];
       OneSignalDeferred.push(function(OneSignal) {
         OneSignal.init({
-          appId: "cfcac60f-c416-4f7f-97bc-6e0e6eed7bb6", // [필수] App ID 입력
+          appId: "cfcac60f-c416-4f7f-97bc-6e0e6eed7bb6", // 목사님 앱 ID 입력됨
           safari_web_id: "", 
           notifyButton: {
-            enable: true, // [중요] 종 모양 아이콘 다시 켜기!
+            enable: false, // [수정] 종 모양 아이콘 숨김 (자동 팝업으로 대체)
           },
           allowLocalhostAsSecureOrigin: true,
         });
+        
+        // [추가] 접속 시 자동으로 알림 권한 요청 팝업 띄우기
+        OneSignal.Slidedown.promptPush();
       });
     </script>
 
@@ -30,108 +33,341 @@
     <meta property="og:image" content="./thumbnail.jpg">
 
     <style>
-        /* 스타일은 기존과 동일합니다 */
+        /* [기본 설정] */
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body, html { margin: 0; padding: 0; font-family: 'Apple SD Gothic Neo', sans-serif; background-color: #333; overflow-x: hidden; }
-        .map-container { position: relative; width: 100%; max-width: 600px; margin: 0 auto; padding-bottom: 0; background-color: transparent; }
-        .map-chunk { width: 100%; display: block; height: auto; vertical-align: bottom; }
-        .current-plane { position: absolute; left: 50%; width: 100px; height: 100px; margin-left: -50px; margin-top: -50px; z-index: 100; filter: drop-shadow(0 20px 20px rgba(0,0,0,0.5)); pointer-events: none; transition: top 1.5s cubic-bezier(0.25, 1, 0.5, 1); }
-        .plane-img { width: 100%; height: 100%; animation: floatPlane 2s ease-in-out infinite; }
-        @keyframes floatPlane { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
-        .event-marker { position: absolute; left: 50%; transform: translateX(-50%); width: 85%; max-width: 340px; z-index: 10; display: flex; align-items: center; cursor: pointer; transition: transform 0.2s; }
+        body, html { 
+            margin: 0; padding: 0; 
+            font-family: 'Apple SD Gothic Neo', sans-serif; 
+            background-color: #333; 
+            overflow-x: hidden;
+        }
+
+        /* [지도 컨테이너] */
+        .map-container {
+            position: relative; 
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            padding-bottom: 0; 
+            background-color: transparent; 
+        }
+
+        .map-chunk { 
+            width: 100%; 
+            display: block; 
+            height: auto; 
+            vertical-align: bottom; 
+        }
+
+        /* [비행기] */
+        .current-plane {
+            position: absolute; 
+            left: 50%;
+            width: 100px; height: 100px;
+            margin-left: -50px; 
+            margin-top: -50px; 
+            z-index: 100; 
+            filter: drop-shadow(0 20px 20px rgba(0,0,0,0.5));
+            pointer-events: none; 
+            /* 부드러운 이동 애니메이션 */
+            transition: top 2.0s cubic-bezier(0.25, 1, 0.5, 1); 
+        }
+        
+        .plane-img {
+            width: 100%; height: 100%;
+            animation: floatPlane 2s ease-in-out infinite;
+        }
+
+        @keyframes floatPlane {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        /* [일정 마커] */
+        .event-marker {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 85%; 
+            max-width: 340px; 
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
         .event-marker:active { transform: translateX(-50%) scale(0.95); }
-        .marker-icon-box { width: 45px; height: 45px; background: white; border: 3px solid #3498db; border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); margin-right: 12px; flex-shrink: 0; font-size: 24px; line-height: 1; }
-        .marker-card { background: rgba(255, 255, 255, 0.95); padding: 12px 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); flex-grow: 1; position: relative; }
-        .marker-card::after { content: ''; position: absolute; left: -8px; top: 50%; transform: translateY(-50%); border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-right: 8px solid rgba(255, 255, 255, 0.95); }
-        .marker-card.special-event { background: #fff9c4; border: 2px solid #fbc02d; }
-        .marker-card.special-event::after { border-right-color: #fff9c4; }
+
+        .marker-icon-box {
+            width: 45px; height: 45px;
+            background: white;
+            border: 3px solid #3498db;
+            border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            margin-right: 12px;
+            flex-shrink: 0;
+            font-size: 24px; line-height: 1;
+        }
+
+        /* [기본 카드 스타일] */
+        .marker-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 12px 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            flex-grow: 1;
+            position: relative;
+        }
+        .marker-card::after {
+            content: ''; position: absolute; left: -8px; top: 50%; transform: translateY(-50%);
+            border-top: 8px solid transparent; border-bottom: 8px solid transparent; 
+            border-right: 8px solid rgba(255, 255, 255, 0.95);
+        }
+
+        .marker-card.special-event {
+            background: #fff9c4; 
+            border: 2px solid #fbc02d; 
+        }
+        .marker-card.special-event::after {
+            border-right-color: #fff9c4;
+        }
+
         .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
-        .category-badge { font-size: 11px; font-weight: bold; color: white; background-color: #34495e; padding: 3px 8px; border-radius: 10px; }
+        
+        .category-badge {
+            font-size: 11px; font-weight: bold; color: white;
+            background-color: #34495e; 
+            padding: 3px 8px; border-radius: 10px;
+        }
+
         .marker-date { font-size: 14px; color: #333; font-weight: 800; letter-spacing: -0.5px; }
         .marker-title { font-size: 16px; font-weight: bold; color: #2c3e50; display: block; margin: 0; }
         .marker-country { font-size: 14px; color: #2980b9; margin-left: 5px; }
+
         .event-marker.past { opacity: 0.6; filter: grayscale(100%); }
         .event-marker.past .marker-icon-box { border-color: #95a5a6; }
-        header { position: fixed; top: 0; left: 0; width: 100%; text-align: center; padding: 15px; background: rgba(255,255,255,0.8); backdrop-filter: blur(5px); z-index: 50; border-bottom: 1px solid rgba(0,0,0,0.1); }
-        .floating-btn { position: fixed; right: 20px; color: white; padding: 12px 20px; border-radius: 30px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 90; cursor: pointer; text-align: center; transition: transform 0.2s; }
+
+        header {
+            position: fixed; top: 0; left: 0; width: 100%;
+            text-align: center; padding: 15px;
+            background: rgba(255,255,255,0.8); backdrop-filter: blur(5px);
+            z-index: 50; border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .floating-btn {
+            position: fixed; right: 20px;
+            color: white;
+            padding: 12px 20px; border-radius: 30px;
+            font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            z-index: 90; cursor: pointer; text-align: center;
+            transition: transform 0.2s;
+        }
         .floating-btn:active { transform: scale(0.95); }
+
         #notice-btn { bottom: 90px; background: #e67e22; }
         #go-today-btn { bottom: 30px; background: #2c3e50; display: none; }
+
+        /* [모달] */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(5px); }
-        .modal-content { background: #f8f9fa; width: 100%; max-width: 450px; border-radius: 20px; overflow: hidden; animation: slideUp 0.3s ease-out; max-height: 85vh; display: flex; flex-direction: column; }
+        .modal-content { 
+            background: #f8f9fa; width: 100%; max-width: 450px; 
+            border-radius: 20px; overflow: hidden; 
+            animation: slideUp 0.3s ease-out; 
+            max-height: 85vh; display: flex; flex-direction: column;
+        }
         @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
         .modal-body { padding: 25px; overflow-y: auto; background: white; }
-        .detail-box { background:#f8f9fa; padding:15px; border-radius:10px; margin-bottom:15px; color:#333; line-height:1.6; font-size:15px; white-space: pre-wrap; text-align: left; }
+        
+        .detail-box {
+            background:#f8f9fa; padding:15px; border-radius:10px; margin-bottom:15px;
+            color:#333; line-height:1.6; font-size:15px; white-space: pre-wrap; text-align: left;
+        }
         .close-btn { display: block; width: 100%; padding: 15px; margin-top: 10px; background: #2c3e50; color: white; border: none; font-size: 16px; border-radius: 10px; cursor: pointer; }
+
+        /* [공지사항 스타일] */
         .notice-list-container { padding: 15px; background-color: #f8f9fa; }
-        .notice-list-item { background: linear-gradient(135deg, #f3e7ff 0%, #e8daff 100%); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 15px; border-radius: 15px; margin-bottom: 12px; cursor: pointer; box-shadow: 0 4px 15px rgba(147, 112, 219, 0.15); border: 1px solid rgba(255, 255, 255, 0.6); transition: transform 0.1s; }
+        .notice-list-item {
+            background: linear-gradient(135deg, #f3e7ff 0%, #e8daff 100%);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            padding: 15px; border-radius: 15px; margin-bottom: 12px; 
+            cursor: pointer; box-shadow: 0 4px 15px rgba(147, 112, 219, 0.15); 
+            border: 1px solid rgba(255, 255, 255, 0.6); transition: transform 0.1s;
+        }
         .notice-list-item:active { transform: scale(0.98); }
         .notice-date { font-size: 12px; color: #8e44ad; font-weight: bold; margin-bottom: 6px; display:block; }
         .notice-title { font-size: 16px; font-weight: bold; color: #4a235a; line-height: 1.4; }
         .back-btn { background: #95a5a6; margin-bottom: 10px; }
+
     </style>
 </head>
 <body>
-    <header><h1 style="font-size: 18px; margin:0;">MIRACLE SCHEDULE</h1></header>
+
+    <header>
+        <h1 style="font-size: 18px; margin:0;">MIRACLE SCHEDULE</h1>
+    </header>
+
     <div class="map-container" id="map-area">
-        <div id="plane-wrapper" class="current-plane" style="top: 0%;"><img src="./plane.png" class="plane-img" alt="비행기"></div>
-        <img src="./01.jpg" class="map-chunk"><img src="./02.jpg" class="map-chunk"><img src="./03.jpg" class="map-chunk"><img src="./04.jpg" class="map-chunk"><img src="./05.jpg" class="map-chunk"><img src="./06.jpg" class="map-chunk"><img src="./07.jpg" class="map-chunk">
+        <div id="plane-wrapper" class="current-plane" style="top: 0%;">
+            <img src="./plane.png" class="plane-img" alt="비행기">
+        </div>
+
+        <img src="./01.jpg" class="map-chunk">
+        <img src="./02.jpg" class="map-chunk">
+        <img src="./03.jpg" class="map-chunk">
+        <img src="./04.jpg" class="map-chunk">
+        <img src="./05.jpg" class="map-chunk">
+        <img src="./06.jpg" class="map-chunk">
+        <img src="./07.jpg" class="map-chunk">
+
         <div id="marker-layer"></div>
     </div>
+
     <div id="notice-btn" class="floating-btn" onclick="openNoticeList()">📢 공지사항</div>
     <div id="go-today-btn" class="floating-btn" onclick="scrollToPlane()">📍 현재 스케쥴</div>
 
-    <div id="modal" class="modal-overlay" onclick="closeModal('modal')"><div class="modal-content" onclick="event.stopPropagation()"><div class="modal-body"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span id="m-category" style="background:#34495e; color:white; padding:4px 10px; border-radius:15px; font-size:12px;">소속</span><span id="m-date" style="color:#e74c3c; font-weight:bold; font-size:14px;"></span></div><h3 id="m-title" style="margin:5px 0 5px 0; font-size: 22px; color:#2c3e50;"></h3><div id="m-country" style="color:#2980b9; font-weight:bold; margin-bottom:10px; font-size:15px;"></div><div id="m-manager" style="color:#7f8c8d; font-size:14px; margin-bottom: 20px; font-weight: bold;"></div><div id="m-desc-box" style="margin-bottom: 10px; font-weight: bold; color: #34495e; font-size: 16px;">📌 <span id="m-desc"></span></div><div id="m-detail" class="detail-box"></div><button class="close-btn" onclick="closeModal('modal')">닫기</button></div></div></div>
-    <div id="notice-list-modal" class="modal-overlay" onclick="closeModal('notice-list-modal')"><div class="modal-content" onclick="event.stopPropagation()"><div style="padding: 20px; border-bottom: 1px solid #e2e8f0; background:white; position: sticky; top:0; z-index:10;"><h3 style="margin:0; color:#e67e22; font-size: 18px;">📢 공지사항</h3></div><div id="notice-list-container" class="notice-list-container" style="max-height: 60vh; overflow-y: auto;"><div style="padding:20px; text-align:center; color:#999;">로딩중...</div></div><div style="padding: 15px; background: white; border-top: 1px solid #e2e8f0;"><button class="close-btn" style="margin-top:0;" onclick="closeModal('notice-list-modal')">닫기</button></div></div></div>
-    <div id="notice-detail-modal" class="modal-overlay" onclick="closeModal('notice-detail-modal')"><div class="modal-content" onclick="event.stopPropagation()"><div class="modal-body"><span id="n-date" style="color:#e67e22; font-size:13px; font-weight:bold;"></span><h3 id="n-title" style="margin:10px 0 20px 0; font-size: 20px; color:#2c3e50; border-bottom:2px solid #f0f0f0; padding-bottom:15px;"></h3><div id="n-content" class="detail-box" style="background:white; border:none; padding:0; font-size:16px;"></div><button class="close-btn back-btn" onclick="backToNoticeList()">목록으로</button><button class="close-btn" onclick="closeModal('notice-detail-modal')">닫기</button></div></div></div>
+
+    <div id="modal" class="modal-overlay" onclick="closeModal('modal')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-body">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <span id="m-category" style="background:#34495e; color:white; padding:4px 10px; border-radius:15px; font-size:12px;">소속</span>
+                    <span id="m-date" style="color:#e74c3c; font-weight:bold; font-size:14px;"></span>
+                </div>
+                <h3 id="m-title" style="margin:5px 0 5px 0; font-size: 22px; color:#2c3e50;"></h3>
+                <div id="m-country" style="color:#2980b9; font-weight:bold; margin-bottom:10px; font-size:15px;"></div>
+                
+                <div id="m-manager" style="color:#7f8c8d; font-size:14px; margin-bottom: 20px; font-weight: bold;"></div>
+
+                <div id="m-desc-box" style="margin-bottom: 10px; font-weight: bold; color: #34495e; font-size: 16px;">
+                    📌 <span id="m-desc"></span>
+                </div>
+
+                <div id="m-detail" class="detail-box"></div>
+                
+                <button class="close-btn" onclick="closeModal('modal')">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="notice-list-modal" class="modal-overlay" onclick="closeModal('notice-list-modal')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div style="padding: 20px; border-bottom: 1px solid #e2e8f0; background:white; position: sticky; top:0; z-index:10;">
+                <h3 style="margin:0; color:#e67e22; font-size: 18px;">📢 공지사항</h3>
+            </div>
+            <div id="notice-list-container" class="notice-list-container" style="max-height: 60vh; overflow-y: auto;">
+                <div style="padding:20px; text-align:center; color:#999;">로딩중...</div>
+            </div>
+            <div style="padding: 15px; background: white; border-top: 1px solid #e2e8f0;">
+                <button class="close-btn" style="margin-top:0;" onclick="closeModal('notice-list-modal')">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="notice-detail-modal" class="modal-overlay" onclick="closeModal('notice-detail-modal')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-body">
+                <span id="n-date" style="color:#e67e22; font-size:13px; font-weight:bold;"></span>
+                <h3 id="n-title" style="margin:10px 0 20px 0; font-size: 20px; color:#2c3e50; border-bottom:2px solid #f0f0f0; padding-bottom:15px;"></h3>
+                <div id="n-content" class="detail-box" style="background:white; border:none; padding:0; font-size:16px;"></div>
+                <button class="close-btn back-btn" onclick="backToNoticeList()">목록으로</button>
+                <button class="close-btn" onclick="closeModal('notice-detail-modal')">닫기</button>
+            </div>
+        </div>
+    </div>
 
     <script>
-        // 스크립트는 기존과 동일
         const SPREADSHEET_ID = "16TLSPJvbPZE-kWRAx2_W5Pa2p7dzwXiufQmtDQjkYFY"; 
         const SHEET_NAME = "Sheet1"; 
         const NOTICE_SHEET_NAME = "Sheet2"; 
+
         const API_URL = `https://opensheet.elk.sh/${SPREADSHEET_ID}/${SHEET_NAME}`;
         const NOTICE_API_URL = `https://opensheet.elk.sh/${SPREADSHEET_ID}/${NOTICE_SHEET_NAME}`;
+
         let markerPositions = [];
         let notices = []; 
 
-        fetch(API_URL).then(response => response.json()).then(data => {
-            let schedules = data;
-            schedules.sort((a, b) => parseDate(a.date) - parseDate(b.date));
-            renderMap(schedules);
-            setTimeout(scrollToPlane, 1000); 
-        }).catch(error => console.error("일정 로딩 실패:", error));
+        // 1. 일정 데이터 불러오기
+        fetch(API_URL)
+            .then(response => response.json())
+            .then(data => {
+                let schedules = data;
+                schedules.sort((a, b) => parseDate(a.date) - parseDate(b.date));
+                renderMap(schedules);
+                
+                // [수정] 비행기가 움직일 시간을 충분히 줍니다
+                setTimeout(scrollToPlane, 1500); 
+            })
+            .catch(error => console.error("일정 로딩 실패:", error));
 
-        fetch(NOTICE_API_URL).then(response => response.json()).then(data => {
-            data.sort((a, b) => parseDate(b.date) - parseDate(a.date));
-            notices = data;
-        }).catch(error => console.error("공지 로딩 실패:", error));
+        // 2. 공지사항 데이터 불러오기
+        fetch(NOTICE_API_URL)
+            .then(response => response.json())
+            .then(data => {
+                data.sort((a, b) => parseDate(b.date) - parseDate(a.date));
+                notices = data;
+            })
+            .catch(error => console.error("공지 로딩 실패:", error));
 
-        function parseDate(dateStr) { if (!dateStr) return 0; const standardDate = dateStr.replace(/\./g, '-').replace(/\//g, '-'); return new Date(standardDate).getTime(); }
+
+        function parseDate(dateStr) {
+            if (!dateStr) return 0;
+            // 2026.02.11 형식을 2026-02-11 형식으로 변환 (점, 슬래시 모두 처리)
+            const standardDate = dateStr.replace(/\./g, '-').replace(/\//g, '-');
+            return new Date(standardDate).getTime();
+        }
+
         function renderMap(schedules) {
             const container = document.getElementById('marker-layer');
             const today = new Date().getTime();
             const count = schedules.length;
+
             if (count === 0) return;
-            let currentScore = 0; let scores = []; scores.push(0); 
+
+            let currentScore = 0;
+            let scores = [];
+            scores.push(0); 
+
+            // 위치 점수 계산
             for (let i = 1; i < count; i++) {
                 const prevDate = parseDate(schedules[i-1].date);
                 const currDate = parseDate(schedules[i].date);
-                if (currDate === prevDate) { currentScore += 30; } else { currentScore += 50; }
+
+                if (currDate === prevDate) {
+                    currentScore += 30; // 같은 날짜면 조금만 이동
+                } else {
+                    currentScore += 50; // 다른 날짜면 많이 이동
+                }
                 scores.push(currentScore);
             }
-            const maxScore = currentScore; const normalize = (maxScore === 0) ? 1 : maxScore;
+
+            const maxScore = currentScore;
+            const normalize = (maxScore === 0) ? 1 : maxScore;
+
             let targetIndex = -1; 
+
+            // 마커 그리기
             schedules.forEach((item, index) => {
                 if(!item.date || !item.team) return;
                 const itemDate = parseDate(item.date);
+                
+                // 지도상 위치(%) 계산
                 let positionPercent = 2 + (scores[index] / normalize) * 95; 
+                
                 markerPositions.push(positionPercent);
-                if (targetIndex === -1 && itemDate >= today) { targetIndex = index; }
+
+                // [중요] 오늘 날짜 이후의 첫 번째 일정을 타겟으로 잡음
+                if (targetIndex === -1 && itemDate >= today) {
+                    targetIndex = index;
+                }
+
                 const div = document.createElement('div');
                 div.className = 'event-marker';
                 div.style.top = positionPercent + "%"; 
+                
                 if (itemDate < today) div.classList.add('past'); 
+
                 const iconChar = item.icon ? item.icon : '🚩';
                 const category = item.category ? item.category : '미정';
                 let badgeColor = "#34495e"; 
@@ -139,21 +375,104 @@
                 if(category.includes("장년")) badgeColor = "#27ae60"; 
                 if(category.includes("학교")) badgeColor = "#f1c40f"; 
                 if(category.includes("기도")) badgeColor = "#9b59b6"; 
+
                 let specialClass = "";
-                if (category && category.trim() === "기타") { specialClass = "special-event"; badgeColor = "#f39c12"; }
-                div.innerHTML = `<div class="marker-icon-box">${iconChar}</div><div class="marker-card ${specialClass}"><div class="card-top"><span class="category-badge" style="background-color:${badgeColor}">${category}</span><span class="marker-date">${item.display_date}</span></div><span class="marker-title">${item.team} <span class="marker-country">(${item.country || ''})</span></span></div>`;
+                if (category && category.trim() === "기타") {
+                    specialClass = "special-event";
+                    badgeColor = "#f39c12"; 
+                }
+
+                div.innerHTML = `
+                    <div class="marker-icon-box">${iconChar}</div>
+                    <div class="marker-card ${specialClass}">
+                        <div class="card-top">
+                            <span class="category-badge" style="background-color:${badgeColor}">${category}</span>
+                            <span class="marker-date">${item.display_date}</span>
+                        </div>
+                        <span class="marker-title">${item.team} <span class="marker-country">(${item.country || ''})</span></span>
+                    </div>
+                `;
                 div.onclick = () => openScheduleModal(schedules[index]);
                 container.appendChild(div);
             });
+
+            // [수정] 만약 모든 일정이 끝났으면(targetIndex가 없으면) 마지막 위치로
             if (targetIndex === -1) targetIndex = count - 1;
-            if (markerPositions[targetIndex] !== undefined) { document.getElementById('plane-wrapper').style.top = markerPositions[targetIndex] + "%"; }
+            
+            // [수정] 비행기 이동 (데이터가 있을 때만)
+            if (markerPositions[targetIndex] !== undefined) {
+                // 약간의 지연을 주어 부드럽게 이동하는 효과
+                setTimeout(() => {
+                    document.getElementById('plane-wrapper').style.top = markerPositions[targetIndex] + "%";
+                }, 100);
+            }
         }
-        function scrollToPlane() { const plane = document.getElementById('plane-wrapper'); if(plane) { const targetScroll = plane.offsetTop - (window.innerHeight / 2); window.scrollTo({ top: targetScroll, behavior: 'smooth' }); document.getElementById('go-today-btn').style.display = 'block'; } }
-        function openScheduleModal(data) { const iconChar = data.icon ? data.icon : '🚩'; document.getElementById('m-category').innerText = data.category || "소속"; document.getElementById('m-date').innerText = data.display_date || ""; document.getElementById('m-title').innerText = iconChar + " " + (data.team || ""); document.getElementById('m-country').innerText = "선교지: " + (data.country || ""); const managerName = data.manager ? data.manager : "미정"; document.getElementById('m-manager').innerText = "담당: " + managerName; const desc = data.desc ? data.desc : "핵심 사역 정보 없음"; document.getElementById('m-desc').innerText = desc; document.getElementById('m-detail').innerText = data.detail ? data.detail : "상세 내용이 없습니다."; document.getElementById('modal').style.display = 'flex'; }
-        function openNoticeList() { const container = document.getElementById('notice-list-container'); container.innerHTML = ""; if(notices.length === 0) { container.innerHTML = '<div style="padding:20px; text-align:center;">등록된 공지사항이 없습니다.</div>'; } else { notices.forEach((item, index) => { const div = document.createElement('div'); div.className = 'notice-list-item'; div.innerHTML = `<span class="notice-date">${item.date || ''}</span><span class="notice-title">${item.title || '제목 없음'}</span>`; div.onclick = () => openNoticeDetail(index); container.appendChild(div); }); } document.getElementById('notice-list-modal').style.display = 'flex'; }
-        function openNoticeDetail(index) { const item = notices[index]; document.getElementById('notice-list-modal').style.display = 'none'; document.getElementById('n-date').innerText = item.date || ""; document.getElementById('n-title').innerText = item.title || ""; document.getElementById('n-content').innerText = item.content || "내용이 없습니다."; document.getElementById('notice-detail-modal').style.display = 'flex'; }
-        function backToNoticeList() { document.getElementById('notice-detail-modal').style.display = 'none'; document.getElementById('notice-list-modal').style.display = 'flex'; }
-        function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
+
+        function scrollToPlane() {
+            const plane = document.getElementById('plane-wrapper');
+            if(plane) {
+                const targetScroll = plane.offsetTop - (window.innerHeight / 2);
+                window.scrollTo({ top: targetScroll, behavior: 'smooth' });
+                document.getElementById('go-today-btn').style.display = 'block';
+            }
+        }
+
+        function openScheduleModal(data) {
+            const iconChar = data.icon ? data.icon : '🚩';
+            document.getElementById('m-category').innerText = data.category || "소속";
+            document.getElementById('m-date').innerText = data.display_date || "";
+            document.getElementById('m-title').innerText = iconChar + " " + (data.team || "");
+            document.getElementById('m-country').innerText = "선교지: " + (data.country || "");
+            
+            const managerName = data.manager ? data.manager : "미정";
+            document.getElementById('m-manager').innerText = "담당: " + managerName;
+
+            const desc = data.desc ? data.desc : "핵심 사역 정보 없음";
+            document.getElementById('m-desc').innerText = desc;
+
+            document.getElementById('m-detail').innerText = data.detail ? data.detail : "상세 내용이 없습니다.";
+            
+            document.getElementById('modal').style.display = 'flex';
+        }
+
+        function openNoticeList() {
+            const container = document.getElementById('notice-list-container');
+            container.innerHTML = ""; 
+
+            if(notices.length === 0) {
+                container.innerHTML = '<div style="padding:20px; text-align:center;">등록된 공지사항이 없습니다.</div>';
+            } else {
+                notices.forEach((item, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'notice-list-item'; 
+                    div.innerHTML = `
+                        <span class="notice-date">${item.date || ''}</span>
+                        <span class="notice-title">${item.title || '제목 없음'}</span>
+                    `;
+                    div.onclick = () => openNoticeDetail(index);
+                    container.appendChild(div);
+                });
+            }
+            document.getElementById('notice-list-modal').style.display = 'flex';
+        }
+
+        function openNoticeDetail(index) {
+            const item = notices[index];
+            document.getElementById('notice-list-modal').style.display = 'none';
+            document.getElementById('n-date').innerText = item.date || "";
+            document.getElementById('n-title').innerText = item.title || "";
+            document.getElementById('n-content').innerText = item.content || "내용이 없습니다.";
+            document.getElementById('notice-detail-modal').style.display = 'flex'; 
+        }
+
+        function backToNoticeList() {
+            document.getElementById('notice-detail-modal').style.display = 'none';
+            document.getElementById('notice-list-modal').style.display = 'flex';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
     </script>
 </body>
 </html>
